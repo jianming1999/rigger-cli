@@ -1,0 +1,1 @@
+var EventVue = new Vue();

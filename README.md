@@ -1,4 +1,2 @@
 # rigger-cli
-this is rigger tool
-
-by jm
+脚手架工具，用于初始化项目
