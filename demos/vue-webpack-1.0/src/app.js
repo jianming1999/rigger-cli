@@ -1,3 +1,4 @@
+require('assets/css/app.css');
 require('assets/libs/flexible-v2');
 import Vue from 'vue';
 import Zepto from 'assets/libs/zepto';
