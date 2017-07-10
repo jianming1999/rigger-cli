@@ -1,0 +1,33 @@
+{
+  "name": "rigger-cli",
+  "version": "0.1.0",
+  "description": "脚手架工具，用于初始化项目",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jianming1999/rigger-cli.git"
+  },
+  "bin": {
+    "rigger": "./bin/rigger.js"
+  },
+  "keywords": [
+    "rigger",
+    "vue",
+    "webpack"
+  ],
+  "author": "jm1999",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jianming1999/rigger-cli/issues"
+  },
+  "homepage": "https://github.com/jianming1999/rigger-cli#readme",
+  "dependencies": {
+    "shelljs": "^0.6.0"
+  },
+  "devDependencies": {
+    "shelljs": "^0.6.0"
+  }
+}

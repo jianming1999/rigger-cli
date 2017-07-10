@@ -6,25 +6,17 @@ var merge = require('webpack-merge')
 var baseWebpackConfig = require('./webpack.base.conf')
 var ExtractTextPlugin = require('extract-text-webpack-plugin')
 var HtmlWebpackPlugin = require('html-webpack-plugin')
+var InertToHTMLPlugin = require('./webpack.plugin.insertToHtml')
+var EnvName = process.env.ENV_NAME; // 环境名称，如: prd | stg | dev ...
+var isOnline = process.env.ENV_ONLINE; // 是否为在线模式，默认为false
+
 var env = process.env.NODE_ENV === 'testing'
   ? require('../config/test.env')
   : config.build.env
 var glob = require('glob');
 var path = require('path');
 
-function getEntry(globPath) {
-  var entries = {},
-    basename, tmp, pathname;
 
-  glob.sync(globPath).forEach(function (entry) {
-    basename = path.basename(entry, path.extname(entry));
-    tmp = entry.split('/').splice(-3);
-    pathname = tmp.splice(0, 1) + '/' + basename; // 正确输出js和html的路径
-    entries[pathname] = entry;
-  });
-
-  return entries;
-}
 
 var webpackConfig = merge(baseWebpackConfig, {
   module: {
@@ -36,6 +28,9 @@ var webpackConfig = merge(baseWebpackConfig, {
     filename: utils.assetsPath('js/[name].js'),
     chunkFilename: utils.assetsPath('js/[id].js')
   },
+  resolve: {
+    'aladdin-ibank': path.resolve(__dirname, '../config/prod.env.js')
+  },
   vue: {
     loaders: utils.cssLoaders({
       sourceMap: config.build.productionSourceMap,
@@ -43,6 +38,9 @@ var webpackConfig = merge(baseWebpackConfig, {
     })
   },
   plugins: [
+    new InertToHTMLPlugin({
+      paths: [utils.assetsPath('js/config/' + EnvName +'.js')]
+    }),
     // http://vuejs.github.io/vue-loader/workflow/production.html
     new webpack.DefinePlugin({
       'process.env': env
@@ -75,19 +73,19 @@ var webpackConfig = merge(baseWebpackConfig, {
     //   chunksSortMode: 'dependency'
     // }),
     // split vendor js into its own file
-    // new webpack.optimize.CommonsChunkPlugin({
-    //   name: 'vendor',
-    //   minChunks: function (module, count) {
-    //     // any required modules inside node_modules are extracted to vendor
-    //     return (
-    //       module.resource &&
-    //       /\.js$/.test(module.resource) &&
-    //       module.resource.indexOf(
-    //         path.join(__dirname, '../node_modules')
-    //       ) === 0
-    //     )
-    //   }
-    // }),
+    new webpack.optimize.CommonsChunkPlugin({
+      name: 'vendor',
+      minChunks: function (module, count) {
+        // any required modules inside node_modules are extracted to vendor
+        return (
+          module.resource &&
+          /\.js$/.test(module.resource) &&
+          module.resource.indexOf(
+            path.join(__dirname, '../node_modules')
+          ) === 0
+        )
+      }
+    }),
     // extract webpack runtime and module manifest to its own file in order to
     // prevent vendor hash from being updated whenever app bundle is updated
     // new webpack.optimize.CommonsChunkPlugin({
@@ -115,12 +113,13 @@ if (config.build.productionGzip) {
   )
 }
 
-module.exports = webpackConfig;
+
 
 // var pages = getEntry('./src/module/**/*.html');
-var pages = module.exports.entry;
+var pages = webpackConfig.entry;
 
 for (var pathname in pages) {
+
   // 配置生成的html文件，定义路径等
   var conf = {
     filename: pathname + '.html',
@@ -137,11 +136,13 @@ for (var pathname in pages) {
     // necessary to consistently work with multiple chunks via CommonsChunkPlugin
     chunksSortMode: 'dependency'
   };
-
-  // if (pathname in module.exports.entry) {
-    conf.chunks = ['manifest', 'vendor', pathname];
+  if (/^module\//.test(pathname)) {
+    conf.chunks = ['manifest', 'vendor', 'app', pathname];
     // conf.hash = true;
-  // }
+    webpackConfig.plugins.push(new HtmlWebpackPlugin(conf));
+  }
 
-  webpackConfig.plugins.push(new HtmlWebpackPlugin(conf));
+  
 }
+
+module.exports = webpackConfig;

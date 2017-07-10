@@ -4,8 +4,14 @@ var merge = require('webpack-merge')
 var utils = require('./utils')
 var baseWebpackConfig = require('./webpack.base.conf')
 var HtmlWebpackPlugin = require('html-webpack-plugin')
+var InertToHTMLPlugin = require('./webpack.plugin.insertToHtml')
 var glob = require('glob');
 var path = require('path');
+
+var args = process.argv;
+var EnvName = args[2].replace('-env=', '');// 环境名称，如: prd | stg | dev ...
+console.log('EnvName:' + EnvName);
+
 function getEntry(globPath) {
   var entries = {},
     basename, tmp, pathname;
@@ -31,14 +37,35 @@ module.exports = merge(baseWebpackConfig, {
   },
   // eval-source-map is faster for development
   devtool: '#eval-source-map',
+  resolve: {
+    alias: {
+      'env': path.resolve(__dirname, '../config/dev.env.js')  
+    }
+  },
   plugins: [
     new webpack.DefinePlugin({
       'process.env': config.dev.env
+    }),
+    new InertToHTMLPlugin({
+      paths: [path.posix.join(config.dev.assetsPublicPath, 'config/' + EnvName +'.js')]
     }),
     // https://github.com/glenjamin/webpack-hot-middleware#installation--usage
     new webpack.optimize.OccurenceOrderPlugin(),
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NoErrorsPlugin(),
+    new webpack.optimize.CommonsChunkPlugin({
+      name: 'vendor',
+      minChunks: function (module, count) {
+        // any required modules inside node_modules are extracted to vendor
+        return (
+          module.resource &&
+          /\.js$/.test(module.resource) &&
+          module.resource.indexOf(
+            path.join(__dirname, '../node_modules')
+          ) === 0
+        )
+      }
+    })
     // https://github.com/ampedandwired/html-webpack-plugin
     // new HtmlWebpackPlugin({
     //   filename: 'index.html',
@@ -64,13 +91,14 @@ for (var pathname in pages) {
         //removeAttributeQuotes: true
       },
       // necessary to consistently work with multiple chunks via CommonsChunkPlugin
-      chunksSortMode: 'dependency'
+      // chunksSortMode: 'dependency'
     };
-
-    // if (pathname in module.exports.entry) {
-      conf.chunks = ['manifest', 'vendor', pathname];
+    
+    if (/^module\//.test(pathname)) {
+      conf.chunks = ['vendor','app', pathname];
       // conf.hash = true;
-    // }
+      module.exports.plugins.push(new HtmlWebpackPlugin(conf));
+    }
 
-    module.exports.plugins.push(new HtmlWebpackPlugin(conf));
+    
   }

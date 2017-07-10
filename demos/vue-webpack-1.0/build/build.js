@@ -1,7 +1,9 @@
 // https://github.com/shelljs/shelljs
 require('shelljs/global')
 env.NODE_ENV = 'production'
-
+var args = process.argv;
+env.ENV_NAME = args[2].replace('-env=', '');
+env.ENV_ONLINE = args.indexOf('-online') !== -1;
 var path = require('path')
 var config = require('../config')
 var ora = require('ora')

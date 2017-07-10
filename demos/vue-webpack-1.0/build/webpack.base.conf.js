@@ -8,17 +8,22 @@ function getEntry(globPath) {
   var entries = {},
     basename, tmp, pathname;
 
-  glob.sync(globPath).forEach(function (entry) {
+  glob.sync(globPath).forEach(function (entry, index) {
     basename = path.basename(entry, path.extname(entry));
-    tmp = entry.split('/').splice(-3);
-    pathname = tmp.splice(0, 1) + '/' + basename; // 正确输出js和html的路径
+    tmp = entry.split('/');
+    tmp.splice(0, 2);
+    pathname = tmp.join('/').replace('.js', ''); // 正确输出js和html的路径
     entries[pathname] = entry;
   });
 
   return entries;
 }
 
-var entries = getEntry('./src/module/**/*.js'); // 获得入口js文件
+var entries = {
+  app: './src/app.js'
+};
+Object.assign(entries, getEntry('./src/module/**/*.js')); // 获得入口js文件
+Object.assign(entries, getEntry('./src/config/**/*.js')); // 获得入口js文件
 
 module.exports = {
   entry: entries,
@@ -33,7 +38,8 @@ module.exports = {
     alias: {
       'src': path.resolve(__dirname, '../src'),
       'assets': path.resolve(__dirname, '../src/assets'),
-      'components': path.resolve(__dirname, '../src/components')
+      'components': path.resolve(__dirname, '../src/components'),
+      'env': path.resolve(__dirname, '../config/prod.env.js')
     }
   },
   resolveLoader: {
@@ -62,6 +68,7 @@ module.exports = {
       {
         test: /\.js$/,
         loader: 'babel',
+        query: {presets: ['es2015']},
         include: projectRoot,
         exclude: /node_modules/
       },
@@ -77,7 +84,7 @@ module.exports = {
         test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
         loader: 'url',
         query: {
-          limit: 10000,
+          limit: 1,
           name: utils.assetsPath('img/[name].[ext]')
         }
       },
@@ -85,7 +92,7 @@ module.exports = {
         test: /\.(woff2?|eot|ttf|otf)(\?.*)?$/,
         loader: 'url',
         query: {
-          limit: 10000,
+          limit: 1,
           name: utils.assetsPath('fonts/[name].[ext]')
         }
       }
