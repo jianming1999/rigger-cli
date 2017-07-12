@@ -91,7 +91,7 @@ for (var pathname in pages) {
         //removeAttributeQuotes: true
       },
       // necessary to consistently work with multiple chunks via CommonsChunkPlugin
-      // chunksSortMode: 'dependency'
+      chunksSortMode: 'dependency'
     };
     
     if (/^module\//.test(pathname)) {
