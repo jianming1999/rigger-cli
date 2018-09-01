@@ -4,7 +4,7 @@
   "description": "脚手架工具，用于初始化项目",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node ./bin/rigger.js"
   },
   "repository": {
     "type": "git",
